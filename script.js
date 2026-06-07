@@ -46,8 +46,21 @@ function addComponent(type) {
     setMode('SELECT');
 }
 
-function handleMouseDown(e) {
-    mousePos = { x: e.offsetX, y: e.offsetY };
+// 📱 모바일 터치와 PC 마우스 좌표를 통합해서 정확하게 계산하는 함수
+function getCoords(e) {
+    const svg = document.getElementById('workspace');
+    const rect = svg.getBoundingClientRect();
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+function handlePointerDown(e) {
+    if (!e.isPrimary) return; // 멀티터치 오류 방지
+    e.target.setPointerCapture(e.pointerId); // 손가락이 부품 밖으로 살짝 나가도 계속 추적
+    
+    mousePos = getCoords(e);
     const target = e.target;
     const dataType = target.getAttribute('data-type');
     
@@ -114,8 +127,9 @@ function handleMouseDown(e) {
     }
 }
 
-function handleMouseMove(e) {
-    mousePos = { x: e.offsetX, y: e.offsetY };
+function handlePointerMove(e) {
+    if (!e.isPrimary) return;
+    mousePos = getCoords(e);
     
     if (draggingItem) {
         if (draggingItem.type === 'COMP') {
@@ -131,7 +145,10 @@ function handleMouseMove(e) {
     }
 }
 
-function handleMouseUp(e) {
+function handlePointerUp(e) {
+    if (e.target.releasePointerCapture) {
+        e.target.releasePointerCapture(e.pointerId);
+    }
     if (isSimulating && activePB) {
         activePB.pressed = false;
         activePB = null;
@@ -164,7 +181,7 @@ function render() {
             w.waypoints.forEach((wp, idx) => {
                 const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 circle.setAttribute("cx", wp.x); circle.setAttribute("cy", wp.y);
-                circle.setAttribute("r", "6");
+                circle.setAttribute("r", "10"); // 모바일 터치를 위해 터치 영역 확대 (6->10)
                 circle.setAttribute("class", "waypoint");
                 circle.setAttribute("data-type", "waypoint");
                 circle.setAttribute("data-wire-id", w.id);
@@ -185,52 +202,3 @@ function render() {
     }
 
     components.forEach(c => {
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-        
-        const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        rect.setAttribute("x", c.x); rect.setAttribute("y", c.y);
-        rect.setAttribute("width", c.w); rect.setAttribute("height", c.h);
-        rect.setAttribute("rx", "6");
-        
-        let cClass = `comp-box ${c.type}`;
-        if (c.energized) cClass += " energized";
-        if (c.pressed) cClass += " pressed";
-        rect.setAttribute("class", cClass);
-        rect.setAttribute("data-type", "comp");
-        rect.setAttribute("data-id", c.id);
-        
-        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        text.setAttribute("x", c.x + c.w / 2);
-        text.setAttribute("y", c.y + c.h / 2 + 5);
-        text.setAttribute("class", "comp-text");
-        text.setAttribute("data-type", "comp-label");
-        text.setAttribute("data-id", c.id);
-        text.textContent = c.type === 'PB_NO' ? 'PB (A접점)' : c.type === 'PB_NC' ? 'PB (B접점)' : c.type;
-        
-        g.appendChild(rect);
-        g.appendChild(text);
-
-        c.pins.forEach(pin => {
-            const pAbs = c.getPinAbs(pin.id);
-            const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("cx", pAbs.x); circle.setAttribute("cy", pAbs.y);
-            circle.setAttribute("r", "7");
-            circle.setAttribute("class", "terminal");
-            circle.setAttribute("data-type", "terminal");
-            circle.setAttribute("data-comp", c.id);
-            circle.setAttribute("data-pin", pin.id);
-            
-            const pText = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            pText.setAttribute("x", pAbs.x); 
-            pText.setAttribute("y", pin.y === 0 ? pAbs.y - 12 : pAbs.y + 20);
-            pText.setAttribute("class", "terminal-label");
-            pText.setAttribute("text-anchor", "middle");
-            pText.textContent = pin.label;
-
-            g.appendChild(circle);
-            g.appendChild(pText);
-        });
-        
-        compLayer.appendChild(g);
-    });
-}
