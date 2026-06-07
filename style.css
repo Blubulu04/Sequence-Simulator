@@ -9,7 +9,12 @@ button:hover { background: #575f67; }
 .sim-btn { background: #27ae60; font-size: 16px; padding: 15px; }
 .sim-btn.active { background: #e74c3c; }
 
-#workspace { flex-grow: 1; background: #1e1e1e; cursor: default; }
+#workspace { 
+    flex-grow: 1; 
+    background: #1e1e1e; 
+    cursor: default; 
+    touch-action: none; /* 모바일 터치 스크롤 방지 핵심 코드 */
+}
 
 .comp-box { fill: #34495e; stroke: #7f8c8d; stroke-width: 2; }
 .comp-text { fill: #fff; font-size: 14px; font-weight: bold; pointer-events: none; text-anchor: middle; }
