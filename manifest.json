@@ -1,0 +1,16 @@
+{
+  "short_name": "회로시뮬",
+  "name": "Sequence Circuit Simulator Pro",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2922/2922573.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#1e1e1e",
+  "theme_color": "#1e272e",
+  "display": "standalone",
+  "orientation": "any"
+}
